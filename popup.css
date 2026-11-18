@@ -1,0 +1,174 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  width: 350px;
+  margin: 0;
+  background: #f5f5f5;
+  font-family: Arial, Helvetica, sans-serif;
+  color: #222;
+}
+
+.container {
+  padding: 18px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.header h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.header p {
+  margin: 5px 0 0;
+  color: #777;
+  font-size: 12px;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  background: #b71c1c;
+  border-radius: 50%;
+}
+
+#website-form {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+#website-input {
+  width: 100%;
+  padding: 11px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  outline: none;
+  font-size: 13px;
+}
+
+#website-input:focus {
+  border-color: #b71c1c;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  border-radius: 6px;
+  padding: 10px;
+  font-weight: 700;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+#save-button {
+  background: #b71c1c;
+  color: white;
+}
+
+#save-button:hover {
+  background: #941515;
+}
+
+.toolbar {
+  margin-top: 10px;
+}
+
+.toolbar button {
+  width: 100%;
+  font-size: 12px;
+}
+
+#reset-button {
+  background: #b71c1c;
+  color: white;
+}
+
+#reset-button:hover {
+  background: #941515;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  margin: 22px 0 10px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+#website-count {
+  color: #b71c1c;
+}
+
+#website-list {
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.website-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 11px;
+  margin-bottom: 8px;
+  background: white;
+  border: 1px solid #eee;
+  border-radius: 6px;
+}
+
+.website-name {
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.website-actions {
+  display: flex;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.website-actions button {
+  padding: 6px 8px;
+  font-size: 11px;
+}
+
+.edit-button {
+  background: #eee;
+  color: #333;
+}
+
+.remove-button {
+  background: #fff0f0;
+  color: #b71c1c;
+}
+
+.empty-message {
+  padding: 20px;
+  background: white;
+  border-radius: 6px;
+  color: #888;
+  font-size: 12px;
+  text-align: center;
+}
+
+.footer {
+  margin-top: 18px;
+  padding-top: 12px;
+  border-top: 1px solid #ddd;
+  color: #999;
+  text-align: center;
+  font-size: 9px;
+  letter-spacing: 0.5px;
+}

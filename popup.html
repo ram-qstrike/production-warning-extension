@@ -1,0 +1,56 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Production Websites</title>
+
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+
+  <body>
+    <div class="container">
+      <div class="header">
+        <div>
+          <h2>Production Websites</h2>
+          <p>Manage your production environments</p>
+        </div>
+
+        <span class="status-dot"></span>
+      </div>
+
+      <!-- ADD WEBSITE -->
+      <form id="website-form">
+        <input
+          type="text"
+          id="website-input"
+          placeholder="example.com"
+          autocomplete="off"
+          required
+        />
+
+        <button type="submit" id="save-button">Add Website</button>
+      </form>
+
+      <!-- RESET WARNING -->
+      <div class="toolbar">
+        <button type="button" id="reset-button">Reset Warning</button>
+      </div>
+
+      <!-- WEBSITE LIST -->
+      <div class="section-header">
+        <span>Saved Websites</span>
+
+        <span id="website-count">0</span>
+      </div>
+
+      <div id="website-list"></div>
+
+      <!-- FOOTER -->
+      <div class="footer">PRODUCTION ENVIRONMENT WARNING</div>
+    </div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

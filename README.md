@@ -1,96 +1,132 @@
 # Production Environment Warning
 
-A lightweight Chrome extension that displays a warning whenever a user accesses a configured production environment.
+A lightweight Chrome extension that helps developers, software testers, and QA teams avoid accidentally working or testing on live production websites.
 
-## Why This Was Created
-
-Developers and QA frequently switch between local, development, QA, staging, and production environments.
-
-It is easy to accidentally perform testing or debugging on a live production system.
-
-This extension was created as a simple safety reminder:
-
-> **You are on production. Make sure you intended to test here.**
-
-The extension displays a warning modal when a configured production hostname is detected. After the warning disappears, a small `PRODUCTION — LIVE ENVIRONMENT` badge remains visible.
+It displays a warning whenever you access a configured production environment, helping you recognize when you're working on a live system.
 
 ## Features
 
-- Detects configured production websites
-- Supports multiple production domains
-- Supports child subdomains
-- Displays a production warning modal
-- Shows the current hostname
-- Five-second warning countdown
-- Displays a persistent production badge
-- Stores the warning date in `localStorage`
-- Shows production information in the browser console
-- Provides developer commands for resetting the warning
-- Provides a developer command for checking the current status
+- Add, edit, and delete production websites.
+- Support multiple production domains.
+- Automatically detect child subdomains.
+- Display a production warning modal.
+- Five-second warning countdown.
+- Persistent production environment badge.
+- Remember warnings once per day.
+- Reset warnings for all configured production websites.
+- Save website configurations using Chrome local storage.
 
-## Project Structure
+## Screenshots & Demonstrations
+
+### Add Website
+
+Add a production website directly from the extension popup.
+
+![Add Website](screenshots/add.gif)
+
+### Edit Website
+
+Update an existing production website.
+
+![Edit Website](screenshots/edit.gif)
+
+### Delete Website
+
+Remove a production website from your saved list.
+
+![Delete Website](screenshots/delete.gif)
+
+## Installation
+
+Choose either method to download and install the extension.
+
+### Option 1: Download ZIP (Recommended)
+
+No Git or coding knowledge required.
+
+1. Open the [GitHub repository](https://github.com/ram-qstrike/production-warning-extension).
+2. Click the green **Code** button.
+3. Select **Download ZIP**.
+4. Extract the downloaded ZIP file.
+5. Open Google Chrome.
+6. Navigate to `chrome://extensions`.
+7. Enable **Developer mode**.
+8. Click **Load unpacked**.
+9. Select the extracted project folder containing `manifest.json`.
+
+The extension is now installed!
+
+#### Installation Video
+
+Follow the demonstration below to install the extension using Download ZIP.
+
+![Installation Guide](screenshots/installation.gif)
+
+### Option 2: Git Clone
+
+For developers who prefer using Git.
+
+1. Open your terminal.
+2. Run:
+
+   ```bash
+   git clone https://github.com/ram-qstrike/production-warning-extension.git
+   ```
+
+3. Open the project folder:
+
+   ```bash
+   cd production-warning-extension
+   ```
+
+4. Open Google Chrome and navigate to `chrome://extensions`.
+5. Enable **Developer mode**.
+6. Click **Load unpacked**.
+7. Select the project folder.
+
+The extension is now installed.
+
+## How to Use
+
+1. Click the **Production Environment Warning** extension icon.
+2. Enter a production website domain.
+3. Click **Add Website**.
+4. Visit the configured production website.
+5. The warning modal will appear automatically.
+
+You can also edit or delete saved websites directly from the extension popup.
+
+### Reset Warnings
+
+Click **Reset Warning** to clear warning records for all saved production websites.
+
+The five-second warning dialog will appear again the next time you visit each configured website.
+
+## Supported Website Formats
+
+You can enter either a hostname:
 
 ```text
-production-warning-extension/
-├── manifest.json
-├── content.js
-├── commands.js
-├── background.js
-├── warning.css
-├── icon16.png
-├── icon24.png
-├── icon32.png
-├── icon48.png
-└── icon128.png
+example.com
 ```
 
-## Clone
-
-```bash
-git clone https://github.com/ram-qstrike/production-warning-extension.git
-cd production-warning-extension
-```
-
-## Production Website List
-
-Production websites are configured directly in `content.js`:
-
-```javascript
-const PRODUCTION_HOSTS = [
-  "qx7.prolook.com",
-
-  // Add more production websites here
-  // "www.google.com",
-];
-```
-
-Only use the hostname:
+Or a full URL:
 
 ```text
-"qx7.prolook.com"
+https://example.com/login
 ```
 
-Do not include:
+The extension automatically extracts and saves the hostname.
+
+### Subdomain Support
+
+Adding:
 
 ```text
-"https://qx7.prolook.com/"
+example.com
 ```
 
-or:
-
-```text
-"qx7.prolook.com/login"
-```
-
-Child subdomains are automatically supported.
-
-For example:
-
-```text
-"example.com"
-```
-
-will match:
+Automatically matches:
 
 ```text
 example.com
@@ -99,111 +135,54 @@ app.example.com
 admin.example.com
 ```
 
-## Install on Google Chrome
+You only need to add the main production domain once.
 
-1. Open:
+## Storage
 
-```text
-chrome://extensions
-```
-
-2. Enable **Developer mode**.
-3. Click **Load unpacked**.
-4. Select the project folder containing `manifest.json`.
-5. The extension will be installed.
-
-After changing the extension code, return to:
-
-```text
-chrome://extensions
-```
-
-and click **Reload**.
-
-## Developer Commands
-
-The extension displays the following three commands in the browser console:
-
-```text
-DEVELOPER COMMANDS
-
-Reset the warning for the current domain:
-localStorage.removeItem("productionWarningLastShown");
-
-Reset production warnings:
-resetProductionWarnings();
-
-Check current status:
-productionWarningStatus();
-```
-
-## Reset the Warning for the Current Domain
+The extension uses Chrome local storage:
 
 ```javascript
-localStorage.removeItem("productionWarningLastShown");
+chrome.storage.local;
 ```
 
-This removes the production warning record for the current domain.
+- Website configurations remain saved after closing or restarting Chrome.
+- Warning records are stored locally.
+- No account or external database is required.
+- Websites remain saved until manually removed or extension data is cleared.
 
-Refresh the page to show the warning modal again.
-
-## Reset Production Warnings
-
-```javascript
-resetProductionWarnings();
-```
-
-This resets the production warning records for the configured production domains.
-
-Use this when you want the production warning to appear again across the configured production environments.
-
-## Check Current Status
-
-```javascript
-productionWarningStatus();
-```
-
-This displays the current production warning status in the browser console, including information about the saved warning record.
-
-## How It Works
-
-When a configured production hostname is detected, the extension checks:
+## Project Structure
 
 ```text
-productionWarningLastShown
+production-warning-extension/
+├── manifest.json
+├── content.js
+├── popup.html
+├── popup.css
+├── popup.js
+├── warning.css
+├── icon.png
+└── screenshots/
+    ├── add.gif
+    ├── edit.gif
+    ├── delete.gif
+    └── installation.gif
 ```
-
-If no warning has been recorded for the current day, the warning modal is displayed.
-
-The extension stores information such as:
-
-```javascript
-{
-  date: "2026-08-13",
-  localTime: "8/13/2026, 1:25:29 AM",
-  timestamp: "2026-08-12T17:25:29.502Z",
-  hostname: "qx7.prolook.com",
-  url: "https://qx7.prolook.com/login"
-}
-```
-
-If the warning has already been displayed that day, the modal is skipped and the production badge remains visible.
 
 ## Important
 
-This extension is a **visual safety reminder**.
+This extension is a visual safety reminder.
 
 It does not:
 
-- Block access to production
-- Prevent HTTP requests
-- Modify application behavior
-- Protect production data
-- Replace proper environment controls
+- Block access to production websites.
+- Prevent HTTP requests.
+- Modify application behavior.
+- Protect production data.
+- Replace proper environment controls.
 
-Its purpose is to make it immediately obvious when you are working on a live environment.
+Its purpose is to make it immediately obvious when you're working on a live production environment.
 
-> **PRODUCTION — LIVE ENVIRONMENT.**
+**PRODUCTION — LIVE ENVIRONMENT.**
 
 ## License
 

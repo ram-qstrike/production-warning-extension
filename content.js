@@ -1,108 +1,36 @@
 (function () {
   "use strict";
 
-  // ============================================================
-  // ADD PRODUCTION WEBSITES HERE
-  // ============================================================
-
-  const PRODUCTION_HOSTS = [
-    "qx7.prolook.com",
-
-    // Add more production websites here
-    // "www.google.com",
-  ];
-
-  const STORAGE_KEY = "productionWarningLastShown";
+  const HOSTS_KEY = "productionHosts";
+  const WARNINGS_KEY = "productionWarningRecords";
   const WARNING_SECONDS = 5;
 
-  const hostname = window.location.hostname;
+  const hostname = window.location.hostname.toLowerCase();
 
-  // Match domain + child subdomains
-  const isProduction = PRODUCTION_HOSTS.some(function (host) {
-    return hostname === host || hostname.endsWith("." + host);
-  });
+  // LOAD PRODUCTION WEBSITES
 
-  if (!isProduction) {
-    return;
-  }
+  chrome.storage.local.get([HOSTS_KEY, WARNINGS_KEY], function (result) {
+    const hosts = result[HOSTS_KEY] || [];
 
-  // ============================================================
-  // LOAD DEV COMMANDS
-  // ============================================================
+    const isProduction = hosts.some(function (host) {
+      return hostname === host || hostname.endsWith("." + host);
+    });
 
-  const commandScript = document.createElement("script");
+    if (!isProduction) return;
 
-  commandScript.src = chrome.runtime.getURL("commands.js");
+    const warnings = result[WARNINGS_KEY] || {};
+    const saved = warnings[hostname];
+    const today = getToday();
 
-  commandScript.onload = function () {
-    commandScript.remove();
-  };
-
-  (document.head || document.documentElement).appendChild(commandScript);
-
-  // ============================================================
-  // RECEIVE DEV COMMANDS
-  // ============================================================
-
-  window.addEventListener("message", function (event) {
-    if (event.source !== window) {
-      return;
-    }
-
-    if (!event.data) {
-      return;
-    }
-
-    if (event.data.source !== "production-warning") {
-      return;
-    }
-
-    // ----------------------------------------------------------
-    // RESET PRODUCTION WARNINGS
-    // ----------------------------------------------------------
-
-    if (event.data.action === "RESET_PRODUCTION_WARNINGS") {
-      console.log(
-        "%c[Production Warning] Resetting production warnings...",
-        "color:#b71c1c;font-weight:bold;",
-      );
-
-      chrome.runtime.sendMessage({
-        action: "RESET_ALL_PRODUCTION_WARNINGS",
-        productionHosts: PRODUCTION_HOSTS,
-      });
-
-      return;
-    }
-
-    // ----------------------------------------------------------
-    // CHECK CURRENT STATUS
-    // ----------------------------------------------------------
-
-    if (event.data.action === "PRODUCTION_WARNING_STATUS") {
-      showProductionStatus();
+    if (saved && saved.date === today) {
+      showBadge();
+    } else {
+      saveWarning(warnings);
+      showModal();
     }
   });
 
-  // ============================================================
-  // START
-  // ============================================================
-
-  const today = getToday();
-  const saved = getSavedWarning();
-
-  showConsole(today, saved);
-
-  if (saved && saved.date === today) {
-    showBadge();
-  } else {
-    saveWarning(today);
-    showModal();
-  }
-
-  // ============================================================
-  // DATE
-  // ============================================================
+  // GET CURRENT DATE
 
   function getToday() {
     const now = new Date();
@@ -114,236 +42,82 @@
     ].join("-");
   }
 
-  // ============================================================
-  // LOCAL STORAGE
-  // ============================================================
+  // SAVE WARNING
 
-  function getSavedWarning() {
-    const value = localStorage.getItem(STORAGE_KEY);
-
-    if (!value) {
-      return null;
-    }
-
-    try {
-      return JSON.parse(value);
-    } catch {
-      return null;
-    }
-  }
-
-  function saveWarning(today) {
+  function saveWarning(warnings) {
     const now = new Date();
 
-    const warning = {
-      date: today,
+    warnings[hostname] = {
+      date: getToday(),
       localTime: now.toLocaleString(),
       timestamp: now.toISOString(),
-      hostname: window.location.hostname,
+      hostname: hostname,
       url: window.location.href,
     };
 
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(warning));
+    chrome.storage.local.set({
+      [WARNINGS_KEY]: warnings,
+    });
   }
 
-  // ============================================================
-  // PRODUCTION ENVIRONMENT CONSOLE
-  // ============================================================
-
-  function showConsole(today, saved) {
-    console.group(
-      "%c PRODUCTION ENVIRONMENT ",
-      "background:#b71c1c;color:white;font-weight:bold;padding:5px 8px;",
-    );
-
-    console.log("Environment:", "PRODUCTION");
-    console.log("Hostname:", hostname);
-    console.log("Current URL:", window.location.href);
-    console.log("Today:", today);
-    console.log("Storage Key:", STORAGE_KEY);
-    console.log("Storage Type:", "localStorage");
-
-    console.log("");
-
-    if (saved) {
-      console.log("Existing Warning:", saved);
-      console.log("Saved Date:", saved.date);
-      console.log("Saved Time:", saved.localTime);
-      console.log("Saved Timestamp:", saved.timestamp);
-      console.log("Saved Host:", saved.hostname);
-      console.log("Saved URL:", saved.url);
-
-      console.log("");
-
-      if (saved.date === today) {
-        console.log(
-          "%cStatus: WARNING ALREADY SHOWN TODAY",
-          "color:#2e7d32;font-weight:bold;",
-        );
-      }
-    } else {
-      console.log(
-        "%cStatus: NO EXISTING WARNING",
-        "color:#b71c1c;font-weight:bold;",
-      );
-    }
-
-    console.groupEnd();
-
-    // ==========================================================
-    // DEVELOPER COMMANDS
-    // ==========================================================
-
-    console.log("");
-
-    console.group(
-      "%c DEVELOPER COMMANDS ",
-      "background:#333;color:#fff;font-weight:bold;padding:5px 8px;",
-    );
-
-    console.log(
-      "%cReset the warning for the current domain:",
-      "font-weight:bold;",
-    );
-
-    console.log('localStorage.removeItem("productionWarningLastShown");');
-
-    console.log("");
-
-    console.log("%cReset production warnings:", "font-weight:bold;");
-
-    console.log("resetProductionWarnings();");
-
-    console.log("");
-
-    console.log(
-      "%cCheck current production warning status:",
-      "font-weight:bold;",
-    );
-
-    console.log("productionWarningStatus();");
-
-    console.groupEnd();
-  }
-
-  // ============================================================
-  // STATUS
-  // ============================================================
-
-  function showProductionStatus() {
-    const saved = getSavedWarning();
-    const today = getToday();
-
-    console.group(
-      "%c PRODUCTION WARNING STATUS ",
-      "background:#333;color:white;font-weight:bold;padding:5px 8px;",
-    );
-
-    console.log("Environment:", "PRODUCTION");
-    console.log("Hostname:", hostname);
-    console.log("Current URL:", window.location.href);
-    console.log("Today:", today);
-    console.log("Storage Key:", STORAGE_KEY);
-    console.log("Storage Type:", "localStorage");
-
-    console.log("");
-
-    if (!saved) {
-      console.log(
-        "%cStatus: NO WARNING RECORD",
-        "color:#b71c1c;font-weight:bold;",
-      );
-    } else {
-      console.log("Existing Warning:", saved);
-      console.log("Saved Date:", saved.date);
-      console.log("Saved Time:", saved.localTime);
-      console.log("Saved Timestamp:", saved.timestamp);
-      console.log("Saved Host:", saved.hostname);
-      console.log("Saved URL:", saved.url);
-
-      console.log("");
-
-      if (saved.date === today) {
-        console.log(
-          "%cStatus: WARNING ALREADY SHOWN TODAY",
-          "color:#2e7d32;font-weight:bold;",
-        );
-      } else {
-        console.log(
-          "%cStatus: WARNING WILL SHOW",
-          "color:#b71c1c;font-weight:bold;",
-        );
-      }
-    }
-
-    console.groupEnd();
-  }
-
-  // ============================================================
-  // MODAL
-  // ============================================================
+  // SHOW WARNING DIALOG
 
   function showModal() {
-    if (document.getElementById("production-warning-overlay")) {
-      return;
-    }
-
     const overlay = document.createElement("div");
 
     overlay.id = "production-warning-overlay";
 
-    overlay.innerHTML = `
-      <div id="production-warning-modal">
+    const modal = document.createElement("div");
 
-        <div class="production-warning-label">
-          PRODUCTION ENVIRONMENT
-        </div>
+    modal.id = "production-warning-modal";
 
-        <div class="production-warning-title">
-          HOLD UP
-        </div>
+    modal.innerHTML = `
+      <div class="production-warning-label">
+        PRODUCTION ENVIRONMENT
+      </div>
 
-        <div class="production-warning-subtitle">
-          YOU ARE ON PRODUCTION
-        </div>
+      <div class="production-warning-title">
+        HOLD UP
+      </div>
 
-        <p class="production-warning-message">
-          You are currently accessing the
-          <strong>LIVE PRODUCTION</strong>
-          environment.
-        </p>
+      <div class="production-warning-subtitle">
+        YOU ARE ON PRODUCTION
+      </div>
 
-        <p class="production-warning-danger">
-          Please make sure you intended to test here.
-        </p>
+      <p class="production-warning-message">
+        You are currently accessing the
+        <strong>LIVE PRODUCTION</strong>
+        environment.
+      </p>
 
-        <div class="production-warning-host">
-          ${escapeHtml(hostname)}
-        </div>
+      <p class="production-warning-danger">
+        Please make sure you intended to test here.
+      </p>
 
-        <div class="production-warning-countdown">
-          Warning disappears in
-          <span id="production-warning-countdown">
-            ${WARNING_SECONDS}
-          </span>
-          seconds
-        </div>
+      <div class="production-warning-host">
+        ${escapeHtml(hostname)}
+      </div>
 
+      <div class="production-warning-countdown">
+        Warning disappears in
+        <span id="production-warning-countdown">
+          ${WARNING_SECONDS}
+        </span>
+        seconds
       </div>
     `;
 
+    overlay.appendChild(modal);
     document.body.appendChild(overlay);
 
     let seconds = WARNING_SECONDS;
 
-    const countdown = document.getElementById("production-warning-countdown");
+    const countdown = modal.querySelector("#production-warning-countdown");
 
     const timer = setInterval(function () {
       seconds--;
 
-      if (countdown) {
-        countdown.textContent = seconds;
-      }
+      countdown.textContent = seconds;
 
       if (seconds <= 0) {
         clearInterval(timer);
@@ -358,9 +132,7 @@
     }, 1000);
   }
 
-  // ============================================================
-  // BADGE
-  // ============================================================
+  // SHOW PRODUCTION BADGE
 
   function showBadge() {
     if (document.getElementById("production-warning-badge")) {
@@ -380,9 +152,7 @@
     document.body.appendChild(badge);
   }
 
-  // ============================================================
   // ESCAPE HTML
-  // ============================================================
 
   function escapeHtml(value) {
     return String(value)
